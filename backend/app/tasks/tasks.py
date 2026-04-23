@@ -6,8 +6,6 @@ from app.models.job import Job
 from app.models.result import Result
 from datetime import datetime, timezone
 import uuid
-import numpy as np
-import rasterio
 
 # Sync engine for Celery worker (must use psycopg2, not asyncpg)
 sync_engine = create_engine(settings.DATABASE_URL.replace("+asyncpg", "+psycopg2"))
@@ -26,6 +24,9 @@ def process_geotiff(self, job_id: str, file_path: str):
 
             pixel_sum = 0.0
             pixel_count = 0
+
+            import rasterio
+            import numpy as np
 
             with rasterio.open(file_path) as src:
                 for _, window in src.block_windows(1):

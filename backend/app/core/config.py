@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     JWT_ACCESS_EXPIRE_MINUTES: int = 15
     JWT_REFRESH_EXPIRE_DAYS: int = 7
     CORS_ORIGINS: List[str] = ["http://localhost:5173"]
+    ENVIRONMENT: str = "development"
 
     class Config:
         env_file = ".env"

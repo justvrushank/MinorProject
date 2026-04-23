@@ -11,6 +11,11 @@ services:
       - "5432:5432"
     volumes:
       - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bluecarbon"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   redis:
     image: redis:7-alpine
@@ -19,6 +24,11 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
   backend:
     build:
@@ -29,8 +39,10 @@ services:
       - "8000:8000"
     env_file: ./backend/.env
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     volumes:
       - ./backend:/app
       - /tmp:/tmp
@@ -42,8 +54,10 @@ services:
     command: celery -A app.tasks.celery_app.celery worker --loglevel=info --concurrency=2
     env_file: ./backend/.env
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     volumes:
       - ./backend:/app
       - /tmp:/tmp

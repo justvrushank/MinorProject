@@ -28,3 +28,10 @@ Thumbs.db
 
 # Alembic
 alembic/versions/*.pyc
+
+# ML Models
+*.h5
+*.pkl
+*.pt
+*.pth
+*.onnx

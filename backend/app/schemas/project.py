@@ -1,26 +1,27 @@
-from datetime import datetime
+from pydantic import BaseModel
 from typing import Optional
-from uuid import UUID
-from pydantic import BaseModel, ConfigDict
+
 
 class ProjectCreate(BaseModel):
     name: str
+    location: Optional[str] = None
     description: Optional[str] = None
-    location_name: Optional[str] = None
-    geometry: dict
+    status: Optional[str] = "active"
+
 
 class ProjectUpdate(BaseModel):
     name: Optional[str] = None
+    location: Optional[str] = None
     description: Optional[str] = None
-    location_name: Optional[str] = None
+    status: Optional[str] = None
 
-class ProjectResponse(BaseModel):
-    id: UUID
-    owner_id: UUID
+
+class ProjectOut(BaseModel):
+    id: str
     name: str
-    description: Optional[str]
-    location_name: Optional[str]
-    created_at: datetime
-    updated_at: datetime
-    
-    model_config = ConfigDict(from_attributes=True)
+    location: Optional[str] = None
+    description: Optional[str] = None
+    status: Optional[str] = None
+    createdBy: Optional[str] = None
+    createdAt: Optional[str] = None
+    model_config = {"from_attributes": True}

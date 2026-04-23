@@ -1,15 +1,16 @@
-from sqlalchemy import Column, String, Text, Boolean, DateTime, ForeignKey
-from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.sql import func
+import uuid
+from sqlalchemy import String, Boolean, DateTime, ForeignKey, func
+from sqlalchemy.orm import Mapped, mapped_column
 from app.core.database import Base
+
 
 class Alert(Base):
     __tablename__ = "alerts"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid())
-    project_id = Column(UUID(as_uuid=True), ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    alert_type = Column(String, nullable=False)
-    message = Column(Text, nullable=False)
-    is_read = Column(Boolean, default=False, nullable=False)
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    type: Mapped[str] = mapped_column(String, nullable=True)
+    title: Mapped[str] = mapped_column(String, nullable=True)
+    message: Mapped[str] = mapped_column(String, nullable=True)
+    read: Mapped[bool] = mapped_column(Boolean, default=False)
+    project_id: Mapped[str] = mapped_column(String, ForeignKey("projects.id"), nullable=True)
+    created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now())

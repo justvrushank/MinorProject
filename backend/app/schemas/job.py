@@ -1,18 +1,14 @@
-from datetime import datetime
+from pydantic import BaseModel
 from typing import Optional
-from uuid import UUID
-from pydantic import BaseModel, ConfigDict
-from app.models.analysis_job import JobStatus
 
-class JobCreate(BaseModel):
-    project_id: UUID
 
-class JobStatusResponse(BaseModel):
-    id: UUID
-    project_id: UUID
-    status: JobStatus
-    error_message: Optional[str] = None
-    created_at: datetime
-    updated_at: datetime
-    
-    model_config = ConfigDict(from_attributes=True)
+class JobOut(BaseModel):
+    id: str
+    projectId: str
+    projectName: Optional[str] = None
+    fileName: Optional[str] = None
+    status: str
+    createdAt: str
+    updatedAt: Optional[str] = None
+    result: Optional[dict] = None
+    model_config = {"from_attributes": True}

@@ -1,0 +1,1983 @@
+
+<html>
+<head>
+<title>Blue Carbon MRV</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: #0f172a;
+    color: white;
+}
+
+.sidebar {
+    position: fixed;
+    width: 220px;
+    height: 100%;
+    background: #020617;
+    padding: 20px;
+}
+
+.sidebar h2 {
+    color: #22c55e;
+}
+
+.nav {
+    margin-top: 30px;
+}
+
+.nav div {
+    padding: 12px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    border-radius: 8px;
+}
+
+.nav div:hover {
+    background: #1e293b;
+}
+
+.main {
+    margin-left: 240px;
+    padding: 20px;
+}
+
+.cards {
+    display: flex;
+    gap: 20px;
+}
+
+.card {
+    flex: 1;
+    background: #1e293b;
+    padding: 20px;
+    border-radius: 12px;
+}
+
+.section {
+    margin-top: 20px;
+    background: #1e293b;
+    padding: 20px;
+    border-radius: 12px;
+}
+
+.alert {
+    padding: 10px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+}
+
+.severe {
+    background: #7f1d1d;
+}
+
+.moderate {
+    background: #78350f;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 10px;
+    border-bottom: 1px solid #334155;
+}
+
+.hidden {
+    display: none;
+}
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+function showPage(page) {
+    document.getElementById('dashboard').classList.add('hidden');
+    document.getElementById('alerts').classList.add('hidden');
+    document.getElementById('data').classList.add('hidden');
+
+    document.getElementById(page).classList.remove('hidden');
+}
+</script>
+
+</head>
+
+<body>
+
+<div class="sidebar">
+    <h2>MRV System</h2>
+    <p style="font-size:12px;color:gray;">Powered by n8n + Python</p>
+
+    <div class="nav">
+        <div onclick="showPage('dashboard')">Dashboard</div>
+        <div onclick="showPage('alerts')">Alerts</div>
+        <div onclick="showPage('data')">Data Explorer</div>
+    </div>
+</div>
+
+<div class="main">
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+    <h1>Dashboard</h1>
+    <p>Last Run: 2026-03-28 01:23:39</p>
+
+    <div class="cards">
+        <div class="card">
+            <h3>Total Files</h3>
+            <p>1618</p>
+        </div>
+        <div class="card">
+            <h3>Total Carbon</h3>
+            <p>1774228617.0</p>
+        </div>
+        <div class="card">
+            <h3>Average Area</h3>
+            <p>10965.57</p>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Carbon Distribution</h2>
+        <canvas id="chart"></canvas>
+    </div>
+</div>
+
+<!-- ALERTS -->
+<div id="alerts" class="hidden">
+    <h1>Alerts Panel</h1>
+    
+        <div class="alert moderate">
+            Moderate change in GMW_N00E073_1996_v3.tif
+        </div>
+        
+        <div class="alert moderate">
+            Moderate change in GMW_N00E073_2007_v3.tif
+        </div>
+        
+        <div class="alert moderate">
+            Moderate change in GMW_N00E073_2008_v3.tif
+        </div>
+        
+        <div class="alert moderate">
+            Moderate change in GMW_N00E073_2009_v3.tif
+        </div>
+        
+        <div class="alert moderate">
+            Moderate change in GMW_N00E073_2010_v3.tif
+        </div>
+        
+        <div class="alert moderate">
+            Moderate change in GMW_N00E073_2015_v3.tif
+        </div>
+        
+        <div class="alert moderate">
+            Moderate change in GMW_N00E073_2016_v3.tif
+        </div>
+        
+        <div class="alert moderate">
+            Moderate change in GMW_N00E073_2017_v3.tif
+        </div>
+        
+        <div class="alert moderate">
+            Moderate change in GMW_N00E073_2018_v3.tif
+        </div>
+        
+        <div class="alert moderate">
+            Moderate change in GMW_N00E073_2019_v3.tif
+        </div>
+        
+        <div class="alert moderate">
+            Moderate change in GMW_N00E073_2020_v3.tif
+        </div>
+        
+        <div class="alert severe">
+            Severe Loss detected in GMW_N01E072_1996_v3.tif → Telegram Alert Sent
+        </div>
+        
+        <div class="alert severe">
+            Severe Loss detected in GMW_N01E072_2007_v3.tif → Telegram Alert Sent
+        </div>
+        
+        <div class="alert severe">
+            Severe Loss detected in GMW_N01E072_2008_v3.tif → Telegram Alert Sent
+        </div>
+        
+        <div class="alert severe">
+            Severe Loss detected in GMW_N01E072_2009_v3.tif → Telegram Alert Sent
+        </div>
+        
+        <div class="alert severe">
+            Severe Loss detected in GMW_N01E072_2010_v3.tif → Telegram Alert Sent
+        </div>
+        
+        <div class="alert severe">
+            Severe Loss detected in GMW_N01E072_2015_v3.tif → Telegram Alert Sent
+        </div>
+        
+        <div class="alert severe">
+            Severe Loss detected in GMW_N01E072_2016_v3.tif → Telegram Alert Sent
+        </div>
+        
+        <div class="alert severe">
+            Severe Loss detected in GMW_N01E072_2017_v3.tif → Telegram Alert Sent
+        </div>
+        
+        <div class="alert severe">
+            Severe Loss detected in GMW_N01E072_2018_v3.tif → Telegram Alert Sent
+        </div>
+        
+        <div class="alert severe">
+            Severe Loss detected in GMW_N01E072_2019_v3.tif → Telegram Alert Sent
+        </div>
+        
+        <div class="alert severe">
+            Severe Loss detected in GMW_N01E072_2020_v3.tif → Telegram Alert Sent
+        </div>
+        
+        <div class="alert severe">
+            Severe Loss detected in GMW_N05E073_1996_v3.tif → Telegram Alert Sent
+        </div>
+        
+        <div class="alert severe">
+            Severe Loss detected in GMW_N05E073_2007_v3.tif → Telegram Alert Sent
+        </div>
+        
+        <div class="alert severe">
+            Severe Loss detected in GMW_N05E073_2008_v3.tif → Telegram Alert Sent
+        </div>
+        
+        <div class="alert severe">
+            Severe Loss detected in GMW_N05E073_2009_v3.tif → Telegram Alert Sent
+        </div>
+        
+        <div class="alert severe">
+            Severe Loss detected in GMW_N05E073_2010_v3.tif → Telegram Alert Sent
+        </div>
+        
+        <div class="alert severe">
+            Severe Loss detected in GMW_N05E073_2015_v3.tif → Telegram Alert Sent
+        </div>
+        
+        <div class="alert severe">
+            Severe Loss detected in GMW_N05E073_2016_v3.tif → Telegram Alert Sent
+        </div>
+        
+        <div class="alert severe">
+            Severe Loss detected in GMW_N05E073_2017_v3.tif → Telegram Alert Sent
+        </div>
+        
+        <div class="alert severe">
+            Severe Loss detected in GMW_N05E073_2018_v3.tif → Telegram Alert Sent
+        </div>
+        
+        <div class="alert severe">
+            Severe Loss detected in GMW_N05E073_2019_v3.tif → Telegram Alert Sent
+        </div>
+        
+        <div class="alert severe">
+            Severe Loss detected in GMW_N05E073_2020_v3.tif → Telegram Alert Sent
+        </div>
+        
+        <div class="alert moderate">
+            Moderate change in GMW_N06E073_1996_v3.tif
+        </div>
+        
+        <div class="alert moderate">
+            Moderate change in GMW_N06E073_2007_v3.tif
+        </div>
+        
+        <div class="alert moderate">
+            Moderate change in GMW_N06E073_2008_v3.tif
+        </div>
+        
+        <div class="alert moderate">
+            Moderate change in GMW_N06E073_2009_v3.tif
+        </div>
+        
+        <div class="alert moderate">
+            Moderate change in GMW_N06E073_2010_v3.tif
+        </div>
+        
+        <div class="alert moderate">
+            Moderate change in GMW_N06E073_2015_v3.tif
+        </div>
+        
+        <div class="alert moderate">
+            Moderate change in GMW_N06E073_2016_v3.tif
+        </div>
+        
+        <div class="alert moderate">
+            Moderate change in GMW_N06E073_2017_v3.tif
+        </div>
+        
+        <div class="alert moderate">
+            Moderate change in GMW_N06E073_2018_v3.tif
+        </div>
+        
+        <div class="alert moderate">
+            Moderate change in GMW_N06E073_2019_v3.tif
+        </div>
+        
+        <div class="alert moderate">
+            Moderate change in GMW_N06E073_2020_v3.tif
+        </div>
+        
+        <div class="alert severe">
+            Severe Loss detected in GMW_N06E080_1996_v3.tif → Telegram Alert Sent
+        </div>
+        
+        <div class="alert severe">
+            Severe Loss detected in GMW_N06E080_2007_v3.tif → Telegram Alert Sent
+        </div>
+        
+        <div class="alert severe">
+            Severe Loss detected in GMW_N06E080_2008_v3.tif → Telegram Alert Sent
+        </div>
+        
+        <div class="alert severe">
+            Severe Loss detected in GMW_N06E080_2009_v3.tif → Telegram Alert Sent
+        </div>
+        
+        <div class="alert severe">
+            Severe Loss detected in GMW_N06E080_2010_v3.tif → Telegram Alert Sent
+        </div>
+        
+        <div class="alert severe">
+            Severe Loss detected in GMW_N06E080_2015_v3.tif → Telegram Alert Sent
+        </div>
+        
+        <div class="alert severe">
+            Severe Loss detected in GMW_N06E080_2016_v3.tif → Telegram Alert Sent
+        </div>
+        
+        <div class="alert severe">
+            Severe Loss detected in GMW_N06E080_2017_v3.tif → Telegram Alert Sent
+        </div>
+        
+        <div class="alert severe">
+            Severe Loss detected in GMW_N06E080_2018_v3.tif → Telegram Alert Sent
+        </div>
+        
+        <div class="alert severe">
+            Severe Loss detected in GMW_N06E080_2019_v3.tif → Telegram Alert Sent
+        </div>
+        
+        <div class="alert severe">
+            Severe Loss detected in GMW_N06E080_2020_v3.tif → Telegram Alert Sent
+        </div>
+        
+        <div class="alert severe">
+            Severe Loss detected in GMW_N07E072_1996_v3.tif → Telegram Alert Sent
+        </div>
+        
+        <div class="alert severe">
+            Severe Loss detected in GMW_N07E072_2007_v3.tif → Telegram Alert Sent
+        </div>
+        
+        <div class="alert severe">
+            Severe Loss detected in GMW_N07E072_2008_v3.tif → Telegram Alert Sent
+        </div>
+        
+        <div class="alert severe">
+            Severe Loss detected in GMW_N07E072_2009_v3.tif → Telegram Alert Sent
+        </div>
+        
+        <div class="alert severe">
+            Severe Loss detected in GMW_N07E072_2010_v3.tif → Telegram Alert Sent
+        </div>
+        
+        <div class="alert severe">
+            Severe Loss detected in GMW_N07E072_2015_v3.tif → Telegram Alert Sent
+        </div>
+        
+        <div class="alert severe">
+            Severe Loss detected in GMW_N07E072_2016_v3.tif → Telegram Alert Sent
+        </div>
+        
+        <div class="alert severe">
+            Severe Loss detected in GMW_N07E072_2017_v3.tif → Telegram Alert Sent
+        </div>
+        
+        <div class="alert severe">
+            Severe Loss detected in GMW_N07E072_2018_v3.tif → Telegram Alert Sent
+        </div>
+        
+        <div class="alert severe">
+            Severe Loss detected in GMW_N07E072_2019_v3.tif → Telegram Alert Sent
+        </div>
+        
+        <div class="alert severe">
+            Severe Loss detected in GMW_N07E072_2020_v3.tif → Telegram Alert Sent
+        </div>
+        
+        <div class="alert severe">
+            Severe Loss detected in GMW_N08E072_1996_v3.tif → Telegram Alert Sent
+        </div>
+        
+        <div class="alert severe">
+            Severe Loss detected in GMW_N08E072_2007_v3.tif → Telegram Alert Sent
+        </div>
+        
+        <div class="alert severe">
+            Severe Loss detected in GMW_N08E072_2008_v3.tif → Telegram Alert Sent
+        </div>
+        
+        <div class="alert severe">
+            Severe Loss detected in GMW_N08E072_2009_v3.tif → Telegram Alert Sent
+        </div>
+        
+        <div class="alert severe">
+            Severe Loss detected in GMW_N08E072_2010_v3.tif → Telegram Alert Sent
+        </div>
+        
+        <div class="alert severe">
+            Severe Loss detected in GMW_N08E072_2015_v3.tif → Telegram Alert Sent
+        </div>
+        
+        <div class="alert severe">
+            Severe Loss detected in GMW_N08E072_2016_v3.tif → Telegram Alert Sent
+        </div>
+        
+        <div class="alert severe">
+            Severe Loss detected in GMW_N08E072_2017_v3.tif → Telegram Alert Sent
+        </div>
+        
+        <div class="alert severe">
+            Severe Loss detected in GMW_N08E072_2018_v3.tif → Telegram Alert Sent
+        </div>
+        
+        <div class="alert severe">
+            Severe Loss detected in GMW_N08E072_2019_v3.tif → Telegram Alert Sent
+        </div>
+        
+        <div class="alert severe">
+            Severe Loss detected in GMW_N08E072_2020_v3.tif → Telegram Alert Sent
+        </div>
+        
+        <div class="alert moderate">
+            Moderate change in GMW_N09E076_1996_v3.tif
+        </div>
+        
+        <div class="alert moderate">
+            Moderate change in GMW_N09E076_2007_v3.tif
+        </div>
+        
+        <div class="alert moderate">
+            Moderate change in GMW_N09E076_2008_v3.tif
+        </div>
+        
+        <div class="alert moderate">
+            Moderate change in GMW_N09E076_2009_v3.tif
+        </div>
+        
+        <div class="alert moderate">
+            Moderate change in GMW_N09E076_2010_v3.tif
+        </div>
+        
+        <div class="alert moderate">
+            Moderate change in GMW_N09E076_2015_v3.tif
+        </div>
+        
+        <div class="alert moderate">
+            Moderate change in GMW_N09E076_2016_v3.tif
+        </div>
+        
+        <div class="alert moderate">
+            Moderate change in GMW_N09E076_2017_v3.tif
+        </div>
+        
+        <div class="alert moderate">
+            Moderate change in GMW_N09E076_2018_v3.tif
+        </div>
+        
+        <div class="alert moderate">
+            Moderate change in GMW_N09E076_2019_v3.tif
+        </div>
+        
+        <div class="alert moderate">
+            Moderate change in GMW_N09E076_2020_v3.tif
+        </div>
+        
+        <div class="alert moderate">
+            Moderate change in GMW_N09E077_1996_v3.tif
+        </div>
+        
+        <div class="alert moderate">
+            Moderate change in GMW_N09E077_2007_v3.tif
+        </div>
+        
+        <div class="alert moderate">
+            Moderate change in GMW_N09E077_2008_v3.tif
+        </div>
+        
+        <div class="alert moderate">
+            Moderate change in GMW_N09E077_2009_v3.tif
+        </div>
+        
+        <div class="alert moderate">
+            Moderate change in GMW_N09E077_2010_v3.tif
+        </div>
+        
+        <div class="alert moderate">
+            Moderate change in GMW_N09E077_2015_v3.tif
+        </div>
+        
+        <div class="alert moderate">
+            Moderate change in GMW_N09E077_2016_v3.tif
+        </div>
+        
+        <div class="alert moderate">
+            Moderate change in GMW_N09E077_2017_v3.tif
+        </div>
+        
+        <div class="alert moderate">
+            Moderate change in GMW_N09E077_2018_v3.tif
+        </div>
+        
+        <div class="alert moderate">
+            Moderate change in GMW_N09E077_2019_v3.tif
+        </div>
+        
+        <div class="alert moderate">
+            Moderate change in GMW_N09E077_2020_v3.tif
+        </div>
+        
+</div>
+
+<!-- DATA -->
+<div id="data" class="hidden">
+    <h1>Data Explorer</h1>
+
+    <table>
+        <tr>
+            <th>File</th>
+            <th>Area</th>
+            <th>Carbon</th>
+            <th>Risk</th>
+        </tr>
+        
+    <tr style="background:transparent">
+        <td>GMW_N00E073_1996_v3.tif</td>
+        <td>10.08</td>
+        <td>1008.0</td>
+        <td>Moderate</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N00E073_2007_v3.tif</td>
+        <td>10.08</td>
+        <td>1008.0</td>
+        <td>Moderate</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N00E073_2008_v3.tif</td>
+        <td>10.08</td>
+        <td>1008.0</td>
+        <td>Moderate</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N00E073_2009_v3.tif</td>
+        <td>10.08</td>
+        <td>1008.0</td>
+        <td>Moderate</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N00E073_2010_v3.tif</td>
+        <td>10.08</td>
+        <td>1008.0</td>
+        <td>Moderate</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N00E073_2015_v3.tif</td>
+        <td>10.08</td>
+        <td>1008.0</td>
+        <td>Moderate</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N00E073_2016_v3.tif</td>
+        <td>10.08</td>
+        <td>1008.0</td>
+        <td>Moderate</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N00E073_2017_v3.tif</td>
+        <td>10.08</td>
+        <td>1008.0</td>
+        <td>Moderate</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N00E073_2018_v3.tif</td>
+        <td>10.08</td>
+        <td>1008.0</td>
+        <td>Moderate</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N00E073_2019_v3.tif</td>
+        <td>10.08</td>
+        <td>1008.0</td>
+        <td>Moderate</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N00E073_2020_v3.tif</td>
+        <td>10.08</td>
+        <td>1008.0</td>
+        <td>Moderate</td>
+    </tr>
+    
+    <tr style="background:#3f1d1d">
+        <td>GMW_N01E072_1996_v3.tif</td>
+        <td>3.42</td>
+        <td>342.0</td>
+        <td>Severe Loss</td>
+    </tr>
+    
+    <tr style="background:#3f1d1d">
+        <td>GMW_N01E072_2007_v3.tif</td>
+        <td>3.42</td>
+        <td>342.0</td>
+        <td>Severe Loss</td>
+    </tr>
+    
+    <tr style="background:#3f1d1d">
+        <td>GMW_N01E072_2008_v3.tif</td>
+        <td>3.42</td>
+        <td>342.0</td>
+        <td>Severe Loss</td>
+    </tr>
+    
+    <tr style="background:#3f1d1d">
+        <td>GMW_N01E072_2009_v3.tif</td>
+        <td>3.42</td>
+        <td>342.0</td>
+        <td>Severe Loss</td>
+    </tr>
+    
+    <tr style="background:#3f1d1d">
+        <td>GMW_N01E072_2010_v3.tif</td>
+        <td>3.42</td>
+        <td>342.0</td>
+        <td>Severe Loss</td>
+    </tr>
+    
+    <tr style="background:#3f1d1d">
+        <td>GMW_N01E072_2015_v3.tif</td>
+        <td>3.42</td>
+        <td>342.0</td>
+        <td>Severe Loss</td>
+    </tr>
+    
+    <tr style="background:#3f1d1d">
+        <td>GMW_N01E072_2016_v3.tif</td>
+        <td>3.42</td>
+        <td>342.0</td>
+        <td>Severe Loss</td>
+    </tr>
+    
+    <tr style="background:#3f1d1d">
+        <td>GMW_N01E072_2017_v3.tif</td>
+        <td>3.42</td>
+        <td>342.0</td>
+        <td>Severe Loss</td>
+    </tr>
+    
+    <tr style="background:#3f1d1d">
+        <td>GMW_N01E072_2018_v3.tif</td>
+        <td>3.42</td>
+        <td>342.0</td>
+        <td>Severe Loss</td>
+    </tr>
+    
+    <tr style="background:#3f1d1d">
+        <td>GMW_N01E072_2019_v3.tif</td>
+        <td>3.42</td>
+        <td>342.0</td>
+        <td>Severe Loss</td>
+    </tr>
+    
+    <tr style="background:#3f1d1d">
+        <td>GMW_N01E072_2020_v3.tif</td>
+        <td>3.42</td>
+        <td>342.0</td>
+        <td>Severe Loss</td>
+    </tr>
+    
+    <tr style="background:#3f1d1d">
+        <td>GMW_N05E073_1996_v3.tif</td>
+        <td>3.15</td>
+        <td>315.0</td>
+        <td>Severe Loss</td>
+    </tr>
+    
+    <tr style="background:#3f1d1d">
+        <td>GMW_N05E073_2007_v3.tif</td>
+        <td>3.15</td>
+        <td>315.0</td>
+        <td>Severe Loss</td>
+    </tr>
+    
+    <tr style="background:#3f1d1d">
+        <td>GMW_N05E073_2008_v3.tif</td>
+        <td>3.15</td>
+        <td>315.0</td>
+        <td>Severe Loss</td>
+    </tr>
+    
+    <tr style="background:#3f1d1d">
+        <td>GMW_N05E073_2009_v3.tif</td>
+        <td>3.15</td>
+        <td>315.0</td>
+        <td>Severe Loss</td>
+    </tr>
+    
+    <tr style="background:#3f1d1d">
+        <td>GMW_N05E073_2010_v3.tif</td>
+        <td>3.15</td>
+        <td>315.0</td>
+        <td>Severe Loss</td>
+    </tr>
+    
+    <tr style="background:#3f1d1d">
+        <td>GMW_N05E073_2015_v3.tif</td>
+        <td>3.15</td>
+        <td>315.0</td>
+        <td>Severe Loss</td>
+    </tr>
+    
+    <tr style="background:#3f1d1d">
+        <td>GMW_N05E073_2016_v3.tif</td>
+        <td>3.15</td>
+        <td>315.0</td>
+        <td>Severe Loss</td>
+    </tr>
+    
+    <tr style="background:#3f1d1d">
+        <td>GMW_N05E073_2017_v3.tif</td>
+        <td>3.15</td>
+        <td>315.0</td>
+        <td>Severe Loss</td>
+    </tr>
+    
+    <tr style="background:#3f1d1d">
+        <td>GMW_N05E073_2018_v3.tif</td>
+        <td>3.15</td>
+        <td>315.0</td>
+        <td>Severe Loss</td>
+    </tr>
+    
+    <tr style="background:#3f1d1d">
+        <td>GMW_N05E073_2019_v3.tif</td>
+        <td>3.15</td>
+        <td>315.0</td>
+        <td>Severe Loss</td>
+    </tr>
+    
+    <tr style="background:#3f1d1d">
+        <td>GMW_N05E073_2020_v3.tif</td>
+        <td>3.15</td>
+        <td>315.0</td>
+        <td>Severe Loss</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N06E073_1996_v3.tif</td>
+        <td>42.3</td>
+        <td>4230.0</td>
+        <td>Moderate</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N06E073_2007_v3.tif</td>
+        <td>42.3</td>
+        <td>4230.0</td>
+        <td>Moderate</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N06E073_2008_v3.tif</td>
+        <td>42.3</td>
+        <td>4230.0</td>
+        <td>Moderate</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N06E073_2009_v3.tif</td>
+        <td>42.3</td>
+        <td>4230.0</td>
+        <td>Moderate</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N06E073_2010_v3.tif</td>
+        <td>42.3</td>
+        <td>4230.0</td>
+        <td>Moderate</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N06E073_2015_v3.tif</td>
+        <td>42.3</td>
+        <td>4230.0</td>
+        <td>Moderate</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N06E073_2016_v3.tif</td>
+        <td>42.3</td>
+        <td>4230.0</td>
+        <td>Moderate</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N06E073_2017_v3.tif</td>
+        <td>42.3</td>
+        <td>4230.0</td>
+        <td>Moderate</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N06E073_2018_v3.tif</td>
+        <td>42.3</td>
+        <td>4230.0</td>
+        <td>Moderate</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N06E073_2019_v3.tif</td>
+        <td>42.3</td>
+        <td>4230.0</td>
+        <td>Moderate</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N06E073_2020_v3.tif</td>
+        <td>42.3</td>
+        <td>4230.0</td>
+        <td>Moderate</td>
+    </tr>
+    
+    <tr style="background:#3f1d1d">
+        <td>GMW_N06E080_1996_v3.tif</td>
+        <td>7.74</td>
+        <td>774.0</td>
+        <td>Severe Loss</td>
+    </tr>
+    
+    <tr style="background:#3f1d1d">
+        <td>GMW_N06E080_2007_v3.tif</td>
+        <td>7.74</td>
+        <td>774.0</td>
+        <td>Severe Loss</td>
+    </tr>
+    
+    <tr style="background:#3f1d1d">
+        <td>GMW_N06E080_2008_v3.tif</td>
+        <td>7.74</td>
+        <td>774.0</td>
+        <td>Severe Loss</td>
+    </tr>
+    
+    <tr style="background:#3f1d1d">
+        <td>GMW_N06E080_2009_v3.tif</td>
+        <td>7.74</td>
+        <td>774.0</td>
+        <td>Severe Loss</td>
+    </tr>
+    
+    <tr style="background:#3f1d1d">
+        <td>GMW_N06E080_2010_v3.tif</td>
+        <td>7.74</td>
+        <td>774.0</td>
+        <td>Severe Loss</td>
+    </tr>
+    
+    <tr style="background:#3f1d1d">
+        <td>GMW_N06E080_2015_v3.tif</td>
+        <td>7.74</td>
+        <td>774.0</td>
+        <td>Severe Loss</td>
+    </tr>
+    
+    <tr style="background:#3f1d1d">
+        <td>GMW_N06E080_2016_v3.tif</td>
+        <td>7.74</td>
+        <td>774.0</td>
+        <td>Severe Loss</td>
+    </tr>
+    
+    <tr style="background:#3f1d1d">
+        <td>GMW_N06E080_2017_v3.tif</td>
+        <td>7.74</td>
+        <td>774.0</td>
+        <td>Severe Loss</td>
+    </tr>
+    
+    <tr style="background:#3f1d1d">
+        <td>GMW_N06E080_2018_v3.tif</td>
+        <td>7.74</td>
+        <td>774.0</td>
+        <td>Severe Loss</td>
+    </tr>
+    
+    <tr style="background:#3f1d1d">
+        <td>GMW_N06E080_2019_v3.tif</td>
+        <td>7.74</td>
+        <td>774.0</td>
+        <td>Severe Loss</td>
+    </tr>
+    
+    <tr style="background:#3f1d1d">
+        <td>GMW_N06E080_2020_v3.tif</td>
+        <td>7.74</td>
+        <td>774.0</td>
+        <td>Severe Loss</td>
+    </tr>
+    
+    <tr style="background:#3f1d1d">
+        <td>GMW_N07E072_1996_v3.tif</td>
+        <td>1.35</td>
+        <td>135.0</td>
+        <td>Severe Loss</td>
+    </tr>
+    
+    <tr style="background:#3f1d1d">
+        <td>GMW_N07E072_2007_v3.tif</td>
+        <td>1.35</td>
+        <td>135.0</td>
+        <td>Severe Loss</td>
+    </tr>
+    
+    <tr style="background:#3f1d1d">
+        <td>GMW_N07E072_2008_v3.tif</td>
+        <td>1.35</td>
+        <td>135.0</td>
+        <td>Severe Loss</td>
+    </tr>
+    
+    <tr style="background:#3f1d1d">
+        <td>GMW_N07E072_2009_v3.tif</td>
+        <td>1.35</td>
+        <td>135.0</td>
+        <td>Severe Loss</td>
+    </tr>
+    
+    <tr style="background:#3f1d1d">
+        <td>GMW_N07E072_2010_v3.tif</td>
+        <td>1.35</td>
+        <td>135.0</td>
+        <td>Severe Loss</td>
+    </tr>
+    
+    <tr style="background:#3f1d1d">
+        <td>GMW_N07E072_2015_v3.tif</td>
+        <td>1.35</td>
+        <td>135.0</td>
+        <td>Severe Loss</td>
+    </tr>
+    
+    <tr style="background:#3f1d1d">
+        <td>GMW_N07E072_2016_v3.tif</td>
+        <td>1.35</td>
+        <td>135.0</td>
+        <td>Severe Loss</td>
+    </tr>
+    
+    <tr style="background:#3f1d1d">
+        <td>GMW_N07E072_2017_v3.tif</td>
+        <td>1.35</td>
+        <td>135.0</td>
+        <td>Severe Loss</td>
+    </tr>
+    
+    <tr style="background:#3f1d1d">
+        <td>GMW_N07E072_2018_v3.tif</td>
+        <td>1.35</td>
+        <td>135.0</td>
+        <td>Severe Loss</td>
+    </tr>
+    
+    <tr style="background:#3f1d1d">
+        <td>GMW_N07E072_2019_v3.tif</td>
+        <td>1.35</td>
+        <td>135.0</td>
+        <td>Severe Loss</td>
+    </tr>
+    
+    <tr style="background:#3f1d1d">
+        <td>GMW_N07E072_2020_v3.tif</td>
+        <td>1.35</td>
+        <td>135.0</td>
+        <td>Severe Loss</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N07E073_1996_v3.tif</td>
+        <td>83.7</td>
+        <td>8370.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N07E073_2007_v3.tif</td>
+        <td>83.7</td>
+        <td>8370.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N07E073_2008_v3.tif</td>
+        <td>83.7</td>
+        <td>8370.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N07E073_2009_v3.tif</td>
+        <td>83.7</td>
+        <td>8370.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N07E073_2010_v3.tif</td>
+        <td>83.7</td>
+        <td>8370.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N07E073_2015_v3.tif</td>
+        <td>83.7</td>
+        <td>8370.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N07E073_2016_v3.tif</td>
+        <td>83.7</td>
+        <td>8370.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N07E073_2017_v3.tif</td>
+        <td>83.7</td>
+        <td>8370.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N07E073_2018_v3.tif</td>
+        <td>83.7</td>
+        <td>8370.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N07E073_2019_v3.tif</td>
+        <td>83.7</td>
+        <td>8370.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N07E073_2020_v3.tif</td>
+        <td>83.7</td>
+        <td>8370.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N07E080_1996_v3.tif</td>
+        <td>1611.36</td>
+        <td>161136.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N07E080_2007_v3.tif</td>
+        <td>1597.41</td>
+        <td>159741.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N07E080_2008_v3.tif</td>
+        <td>1591.65</td>
+        <td>159165.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N07E080_2009_v3.tif</td>
+        <td>1580.85</td>
+        <td>158085.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N07E080_2010_v3.tif</td>
+        <td>1582.2</td>
+        <td>158220.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N07E080_2015_v3.tif</td>
+        <td>1578.24</td>
+        <td>157824.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N07E080_2016_v3.tif</td>
+        <td>1576.08</td>
+        <td>157608.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N07E080_2017_v3.tif</td>
+        <td>1573.83</td>
+        <td>157383.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N07E080_2018_v3.tif</td>
+        <td>1565.82</td>
+        <td>156582.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N07E080_2019_v3.tif</td>
+        <td>1532.16</td>
+        <td>153216.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N07E080_2020_v3.tif</td>
+        <td>1519.83</td>
+        <td>151983.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N07E081_1996_v3.tif</td>
+        <td>306.9</td>
+        <td>30690.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N07E081_2007_v3.tif</td>
+        <td>285.48</td>
+        <td>28548.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N07E081_2008_v3.tif</td>
+        <td>266.76</td>
+        <td>26676.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N07E081_2009_v3.tif</td>
+        <td>268.38</td>
+        <td>26838.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N07E081_2010_v3.tif</td>
+        <td>244.17</td>
+        <td>24417.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N07E081_2015_v3.tif</td>
+        <td>314.46</td>
+        <td>31446.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N07E081_2016_v3.tif</td>
+        <td>325.08</td>
+        <td>32508.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N07E081_2017_v3.tif</td>
+        <td>312.84</td>
+        <td>31284.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N07E081_2018_v3.tif</td>
+        <td>307.44</td>
+        <td>30744.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N07E081_2019_v3.tif</td>
+        <td>260.64</td>
+        <td>26064.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N07E081_2020_v3.tif</td>
+        <td>239.04</td>
+        <td>23904.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N07E093_1996_v3.tif</td>
+        <td>98.01</td>
+        <td>9801.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N07E093_2007_v3.tif</td>
+        <td>104.22</td>
+        <td>10422.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N07E093_2008_v3.tif</td>
+        <td>98.28</td>
+        <td>9828.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N07E093_2009_v3.tif</td>
+        <td>85.68</td>
+        <td>8568.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N07E093_2010_v3.tif</td>
+        <td>83.61</td>
+        <td>8361.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N07E093_2015_v3.tif</td>
+        <td>84.24</td>
+        <td>8424.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N07E093_2016_v3.tif</td>
+        <td>87.3</td>
+        <td>8730.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N07E093_2017_v3.tif</td>
+        <td>90.72</td>
+        <td>9072.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N07E093_2018_v3.tif</td>
+        <td>98.64</td>
+        <td>9864.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N07E093_2019_v3.tif</td>
+        <td>102.06</td>
+        <td>10206.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N07E093_2020_v3.tif</td>
+        <td>100.53</td>
+        <td>10053.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:#3f1d1d">
+        <td>GMW_N08E072_1996_v3.tif</td>
+        <td>0.9</td>
+        <td>90.0</td>
+        <td>Severe Loss</td>
+    </tr>
+    
+    <tr style="background:#3f1d1d">
+        <td>GMW_N08E072_2007_v3.tif</td>
+        <td>0.9</td>
+        <td>90.0</td>
+        <td>Severe Loss</td>
+    </tr>
+    
+    <tr style="background:#3f1d1d">
+        <td>GMW_N08E072_2008_v3.tif</td>
+        <td>0.9</td>
+        <td>90.0</td>
+        <td>Severe Loss</td>
+    </tr>
+    
+    <tr style="background:#3f1d1d">
+        <td>GMW_N08E072_2009_v3.tif</td>
+        <td>0.9</td>
+        <td>90.0</td>
+        <td>Severe Loss</td>
+    </tr>
+    
+    <tr style="background:#3f1d1d">
+        <td>GMW_N08E072_2010_v3.tif</td>
+        <td>0.9</td>
+        <td>90.0</td>
+        <td>Severe Loss</td>
+    </tr>
+    
+    <tr style="background:#3f1d1d">
+        <td>GMW_N08E072_2015_v3.tif</td>
+        <td>0.9</td>
+        <td>90.0</td>
+        <td>Severe Loss</td>
+    </tr>
+    
+    <tr style="background:#3f1d1d">
+        <td>GMW_N08E072_2016_v3.tif</td>
+        <td>0.9</td>
+        <td>90.0</td>
+        <td>Severe Loss</td>
+    </tr>
+    
+    <tr style="background:#3f1d1d">
+        <td>GMW_N08E072_2017_v3.tif</td>
+        <td>0.9</td>
+        <td>90.0</td>
+        <td>Severe Loss</td>
+    </tr>
+    
+    <tr style="background:#3f1d1d">
+        <td>GMW_N08E072_2018_v3.tif</td>
+        <td>0.9</td>
+        <td>90.0</td>
+        <td>Severe Loss</td>
+    </tr>
+    
+    <tr style="background:#3f1d1d">
+        <td>GMW_N08E072_2019_v3.tif</td>
+        <td>0.9</td>
+        <td>90.0</td>
+        <td>Severe Loss</td>
+    </tr>
+    
+    <tr style="background:#3f1d1d">
+        <td>GMW_N08E072_2020_v3.tif</td>
+        <td>0.9</td>
+        <td>90.0</td>
+        <td>Severe Loss</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N08E079_1996_v3.tif</td>
+        <td>1561.32</td>
+        <td>156132.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N08E079_2007_v3.tif</td>
+        <td>1650.96</td>
+        <td>165096.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N08E079_2008_v3.tif</td>
+        <td>1694.97</td>
+        <td>169497.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N08E079_2009_v3.tif</td>
+        <td>1678.77</td>
+        <td>167877.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N08E079_2010_v3.tif</td>
+        <td>1678.86</td>
+        <td>167886.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N08E079_2015_v3.tif</td>
+        <td>1632.24</td>
+        <td>163224.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N08E079_2016_v3.tif</td>
+        <td>1583.19</td>
+        <td>158319.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N08E079_2017_v3.tif</td>
+        <td>1558.98</td>
+        <td>155898.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N08E079_2018_v3.tif</td>
+        <td>1551.24</td>
+        <td>155124.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N08E079_2019_v3.tif</td>
+        <td>1544.85</td>
+        <td>154485.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N08E079_2020_v3.tif</td>
+        <td>1573.65</td>
+        <td>157365.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N08E081_1996_v3.tif</td>
+        <td>8650.98</td>
+        <td>865098.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N08E081_2007_v3.tif</td>
+        <td>7171.2</td>
+        <td>717120.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N08E081_2008_v3.tif</td>
+        <td>5930.1</td>
+        <td>593010.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N08E081_2009_v3.tif</td>
+        <td>5183.01</td>
+        <td>518301.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N08E081_2010_v3.tif</td>
+        <td>4963.32</td>
+        <td>496332.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N08E081_2015_v3.tif</td>
+        <td>5073.39</td>
+        <td>507339.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N08E081_2016_v3.tif</td>
+        <td>6075.36</td>
+        <td>607536.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N08E081_2017_v3.tif</td>
+        <td>6388.11</td>
+        <td>638811.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N08E081_2018_v3.tif</td>
+        <td>6190.2</td>
+        <td>619020.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N08E081_2019_v3.tif</td>
+        <td>4691.97</td>
+        <td>469197.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N08E081_2020_v3.tif</td>
+        <td>4016.25</td>
+        <td>401625.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N08E093_1996_v3.tif</td>
+        <td>191.61</td>
+        <td>19161.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N08E093_2007_v3.tif</td>
+        <td>200.16</td>
+        <td>20016.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N08E093_2008_v3.tif</td>
+        <td>196.11</td>
+        <td>19611.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N08E093_2009_v3.tif</td>
+        <td>170.19</td>
+        <td>17019.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N08E093_2010_v3.tif</td>
+        <td>160.56</td>
+        <td>16056.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N08E093_2015_v3.tif</td>
+        <td>155.79</td>
+        <td>15579.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N08E093_2016_v3.tif</td>
+        <td>152.28</td>
+        <td>15228.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N08E093_2017_v3.tif</td>
+        <td>159.12</td>
+        <td>15912.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N08E093_2018_v3.tif</td>
+        <td>210.42</td>
+        <td>21042.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N08E093_2019_v3.tif</td>
+        <td>220.32</td>
+        <td>22032.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N08E093_2020_v3.tif</td>
+        <td>199.98</td>
+        <td>19998.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N09E076_1996_v3.tif</td>
+        <td>34.2</td>
+        <td>3420.0</td>
+        <td>Moderate</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N09E076_2007_v3.tif</td>
+        <td>34.2</td>
+        <td>3420.0</td>
+        <td>Moderate</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N09E076_2008_v3.tif</td>
+        <td>34.2</td>
+        <td>3420.0</td>
+        <td>Moderate</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N09E076_2009_v3.tif</td>
+        <td>34.2</td>
+        <td>3420.0</td>
+        <td>Moderate</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N09E076_2010_v3.tif</td>
+        <td>34.2</td>
+        <td>3420.0</td>
+        <td>Moderate</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N09E076_2015_v3.tif</td>
+        <td>34.2</td>
+        <td>3420.0</td>
+        <td>Moderate</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N09E076_2016_v3.tif</td>
+        <td>34.2</td>
+        <td>3420.0</td>
+        <td>Moderate</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N09E076_2017_v3.tif</td>
+        <td>34.2</td>
+        <td>3420.0</td>
+        <td>Moderate</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N09E076_2018_v3.tif</td>
+        <td>34.2</td>
+        <td>3420.0</td>
+        <td>Moderate</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N09E076_2019_v3.tif</td>
+        <td>34.2</td>
+        <td>3420.0</td>
+        <td>Moderate</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N09E076_2020_v3.tif</td>
+        <td>34.2</td>
+        <td>3420.0</td>
+        <td>Moderate</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N09E077_1996_v3.tif</td>
+        <td>41.04</td>
+        <td>4104.0</td>
+        <td>Moderate</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N09E077_2007_v3.tif</td>
+        <td>41.04</td>
+        <td>4104.0</td>
+        <td>Moderate</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N09E077_2008_v3.tif</td>
+        <td>41.04</td>
+        <td>4104.0</td>
+        <td>Moderate</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N09E077_2009_v3.tif</td>
+        <td>41.04</td>
+        <td>4104.0</td>
+        <td>Moderate</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N09E077_2010_v3.tif</td>
+        <td>41.04</td>
+        <td>4104.0</td>
+        <td>Moderate</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N09E077_2015_v3.tif</td>
+        <td>41.04</td>
+        <td>4104.0</td>
+        <td>Moderate</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N09E077_2016_v3.tif</td>
+        <td>41.04</td>
+        <td>4104.0</td>
+        <td>Moderate</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N09E077_2017_v3.tif</td>
+        <td>41.04</td>
+        <td>4104.0</td>
+        <td>Moderate</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N09E077_2018_v3.tif</td>
+        <td>41.04</td>
+        <td>4104.0</td>
+        <td>Moderate</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N09E077_2019_v3.tif</td>
+        <td>41.04</td>
+        <td>4104.0</td>
+        <td>Moderate</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N09E077_2020_v3.tif</td>
+        <td>41.04</td>
+        <td>4104.0</td>
+        <td>Moderate</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N09E078_1996_v3.tif</td>
+        <td>567.81</td>
+        <td>56781.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N09E078_2007_v3.tif</td>
+        <td>452.7</td>
+        <td>45270.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N09E078_2008_v3.tif</td>
+        <td>414.54</td>
+        <td>41454.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N09E078_2009_v3.tif</td>
+        <td>405.45</td>
+        <td>40545.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N09E078_2010_v3.tif</td>
+        <td>395.19</td>
+        <td>39519.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N09E078_2015_v3.tif</td>
+        <td>389.88</td>
+        <td>38988.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N09E078_2016_v3.tif</td>
+        <td>391.68</td>
+        <td>39168.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N09E078_2017_v3.tif</td>
+        <td>393.12</td>
+        <td>39312.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N09E078_2018_v3.tif</td>
+        <td>382.41</td>
+        <td>38241.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N09E078_2019_v3.tif</td>
+        <td>377.64</td>
+        <td>37764.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N09E078_2020_v3.tif</td>
+        <td>389.88</td>
+        <td>38988.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N09E079_1996_v3.tif</td>
+        <td>4246.56</td>
+        <td>424656.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N09E079_2007_v3.tif</td>
+        <td>4489.38</td>
+        <td>448938.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N09E079_2008_v3.tif</td>
+        <td>4476.33</td>
+        <td>447633.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N09E079_2009_v3.tif</td>
+        <td>4144.95</td>
+        <td>414495.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N09E079_2010_v3.tif</td>
+        <td>4092.66</td>
+        <td>409266.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N09E079_2015_v3.tif</td>
+        <td>4176.54</td>
+        <td>417654.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N09E079_2016_v3.tif</td>
+        <td>4214.34</td>
+        <td>421434.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N09E079_2017_v3.tif</td>
+        <td>4232.61</td>
+        <td>423261.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N09E079_2018_v3.tif</td>
+        <td>4227.03</td>
+        <td>422703.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N09E079_2019_v3.tif</td>
+        <td>4400.91</td>
+        <td>440091.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N09E079_2020_v3.tif</td>
+        <td>4468.23</td>
+        <td>446823.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N09E080_1996_v3.tif</td>
+        <td>546.39</td>
+        <td>54639.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    <tr style="background:transparent">
+        <td>GMW_N09E080_2007_v3.tif</td>
+        <td>517.23</td>
+        <td>51723.0</td>
+        <td>Healthy</td>
+    </tr>
+    
+    </table>
+</div>
+
+</div>
+
+<script>
+const ctx = document.getElementById('chart');
+new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: [...Array(20).keys()],
+        datasets: [{
+            label: 'Carbon',
+            data: [1008.0, 1008.0, 1008.0, 1008.0, 1008.0, 1008.0, 1008.0, 1008.0, 1008.0, 1008.0, 1008.0, 342.0, 342.0, 342.0, 342.0, 342.0, 342.0, 342.0, 342.0, 342.0],
+        }]
+    }
+});
+</script>
+
+</body>
+</html>

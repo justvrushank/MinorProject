@@ -5,7 +5,7 @@ import structlog
 
 from app.core.config import settings
 from app.core.database import engine
-from app.api.v1 import auth, projects, jobs, results, users, verifications, alerts
+from app.api.v1 import auth, projects, jobs, results, users, verifications, alerts, analytics
 from app.core.logging import setup_logging
 
 setup_logging()
@@ -52,3 +52,4 @@ app.include_router(jobs.router, prefix="/api/jobs", tags=["jobs"])
 app.include_router(results.router, prefix="/api/results", tags=["results"])
 app.include_router(verifications.router, prefix="/api/verifications", tags=["verifications"])
 app.include_router(alerts.router, prefix="/api/alerts", tags=["alerts"])
+app.include_router(analytics.router, prefix="/api/analytics", tags=["analytics"])

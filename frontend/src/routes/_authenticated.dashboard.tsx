@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   FolderKanban,
   Cpu,
@@ -10,8 +10,10 @@ import {
 } from "lucide-react";
 import { StatusBadge } from "@/components/StatusBadge";
 import { JobUploadModal } from "@/components/JobUploadModal";
-import { useJobStore } from "@/stores/jobStore";
-import { mockJobs, mockProjects, mockAlerts } from "@/lib/mockData";
+import { jobService } from "@/services/job.service";
+import { projectService } from "@/services/project.service";
+import type { Job, Project } from "@/types";
+import { mockAlerts } from "@/lib/mockData";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: DashboardPage,
@@ -54,23 +56,48 @@ function Kpi({
 
 function DashboardPage() {
   const [uploadOpen, setUploadOpen] = useState(false);
-  const storeJobs = useJobStore((s) => s.jobs);
-  const allJobs = useMemo(
-    () => (storeJobs.length ? storeJobs : mockJobs),
-    [storeJobs],
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+
+  useEffect(() => {
+    jobService.getJobs().then(setJobs).catch(console.error);
+    projectService.getProjects().then(setProjects).catch(console.error);
+  }, []);
+
+  // Sum carbon stock from job_results (new `results` key) or legacy `result.properties`
+  const totalCarbon = useMemo(
+    () =>
+      jobs
+        .filter((j) => j.status === "complete")
+        .reduce((sum, j) => {
+          const newResults = (j as Job & { results?: { carbon_stock_tco2e?: number } })
+            .results;
+          const val =
+            newResults?.carbon_stock_tco2e ??
+            j.result?.properties?.carbon_stock_tCO2e ??
+            0;
+          return sum + val;
+        }, 0),
+    [jobs],
   );
 
-  const totalCarbon = mockJobs
-    .filter((j) => j.result)
-    .reduce((sum, j) => sum + (j.result?.properties.carbon_stock_tCO2e ?? 0), 0);
-
-  const verifiedCount = mockJobs.filter((j) => j.status === "complete").length;
-  const activeJobs = allJobs.filter(
+  const activeJobs = jobs.filter(
     (j) => j.status === "pending" || j.status === "running",
   ).length;
 
-  const recentJobs = allJobs.slice(0, 5);
+  const verifiedCount = jobs.filter(
+    (j) =>
+      j.status === "complete" &&
+      ((j as Job & { results?: { verified?: boolean } }).results?.verified ===
+        true ||
+        false),
+  ).length;
+
+  const recentJobs = jobs.slice(0, 5);
   const recentAlerts = mockAlerts.slice(0, 4);
+
+  const totalProjectsLabel = projects.length.toString();
+  const activeProjectsLabel = `${projects.filter((p) => p.status === "active").length} active`;
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 p-6">
@@ -93,8 +120,8 @@ function DashboardPage() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Kpi
           label="Total Projects"
-          value={mockProjects.length.toString()}
-          hint={`${mockProjects.filter((p) => p.status === "active").length} active`}
+          value={totalProjectsLabel}
+          hint={activeProjectsLabel}
           Icon={FolderKanban}
         />
         <Kpi
@@ -106,7 +133,11 @@ function DashboardPage() {
         />
         <Kpi
           label="Carbon Stock"
-          value={`${(totalCarbon / 1000).toFixed(1)}k`}
+          value={
+            totalCarbon > 0
+              ? `${(totalCarbon / 1000).toFixed(1)}k`
+              : "—"
+          }
           hint="tCO₂e (cumulative)"
           Icon={Leaf}
           accent="bg-status-complete/15 text-status-complete"
@@ -166,6 +197,16 @@ function DashboardPage() {
                     </td>
                   </tr>
                 ))}
+                {recentJobs.length === 0 && (
+                  <tr>
+                    <td
+                      colSpan={4}
+                      className="px-5 py-6 text-center text-sm text-muted-foreground"
+                    >
+                      No jobs yet.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>

@@ -8,20 +8,33 @@ from app.core.database import get_db
 from app.api.deps import get_current_user
 from app.models.job import Job
 from app.models.project import Project
-from app.models.result import Result
+from app.models.job_result import JobResult
 from app.models.user import User
 from app.schemas.job import JobOut
 from app.tasks.tasks import process_geotiff
 
 router = APIRouter()
 
-UPLOAD_DIR = "/tmp"
+UPLOAD_DIR = "/app/uploads"
+
+
+def result_to_dict(r: JobResult | None) -> dict | None:
+    if r is None:
+        return None
+    return {
+        "total_area_ha": r.total_area_ha,
+        "carbon_stock_tco2e": r.carbon_stock_tco2e,
+        "mean_ndvi": r.mean_ndvi,
+        "pixel_count": r.pixel_count,
+        "resolution_m": r.resolution_m,
+        "verified": r.verified,
+    }
 
 
 def job_to_out(
     job: Job,
     project_name: str | None = None,
-    result: Result | None = None,
+    result: JobResult | None = None,
 ) -> dict:
     out = {
         "id": job.id,
@@ -31,6 +44,8 @@ def job_to_out(
         "status": job.status,
         "createdAt": job.created_at.isoformat() if job.created_at else None,
         "updatedAt": job.updated_at.isoformat() if job.updated_at else None,
+        "results": result_to_dict(result) if job.status == "complete" else None,
+        # Legacy result key — keeps frontend compatibility
         "result": None,
     }
     if result and job.status == "complete":
@@ -39,9 +54,9 @@ def job_to_out(
             "geometry": {"type": "Polygon", "coordinates": []},
             "properties": {
                 "carbon_stock_tCO2e": result.carbon_stock_tco2e,
-                "area_ha": result.area_ha,
-                "model_version": result.model_version,
-                "computed_at": result.computed_at.isoformat() if result.computed_at else None,
+                "area_ha": result.total_area_ha,
+                "model_version": "v1.0",
+                "computed_at": result.created_at.isoformat() if result.created_at else None,
             },
         }
     return out
@@ -57,6 +72,8 @@ async def create_job(
     if not file.filename.lower().endswith((".tif", ".tiff")):
         raise HTTPException(status_code=400, detail="Only .tif or .tiff files accepted")
 
+    os.makedirs(UPLOAD_DIR, exist_ok=True)
+
     job_id = str(uuid.uuid4())
     file_path = os.path.join(UPLOAD_DIR, f"{job_id}.tif")
     with open(file_path, "wb") as f:
@@ -67,6 +84,7 @@ async def create_job(
         project_id=projectId,
         created_by=current_user.id,
         file_name=file.filename,
+        file_path=file_path,
         status="pending",
     )
     db.add(job)
@@ -96,7 +114,7 @@ async def list_jobs(
     for job in jobs:
         pr = await db.execute(select(Project).where(Project.id == job.project_id))
         project = pr.scalar_one_or_none()
-        res = await db.execute(select(Result).where(Result.job_id == job.id))
+        res = await db.execute(select(JobResult).where(JobResult.job_id == job.id))
         result = res.scalar_one_or_none()
         out.append(job_to_out(job, project.name if project else None, result))
     return out
@@ -114,6 +132,6 @@ async def get_job(
         raise HTTPException(status_code=404, detail="Job not found")
     pr = await db.execute(select(Project).where(Project.id == job.project_id))
     project = pr.scalar_one_or_none()
-    res = await db.execute(select(Result).where(Result.job_id == job.id))
+    res = await db.execute(select(JobResult).where(JobResult.job_id == job.id))
     result = res.scalar_one_or_none()
     return job_to_out(job, project.name if project else None, result)

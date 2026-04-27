@@ -1,25 +1,37 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { X, Loader2 } from "lucide-react";
 import { GeoTIFFUploader } from "./GeoTIFFUploader";
 import { jobService } from "@/services/job.service";
-import { useJobStore } from "@/stores/jobStore";
-import { mockProjects } from "@/lib/mockData";
-import type { Job } from "@/types";
+import { projectService } from "@/services/project.service";
+import type { Job, Project } from "@/types";
 
 interface Props {
   open: boolean;
   onClose: () => void;
   defaultProjectId?: string;
+  onJobCreated?: (job: Job) => void;
 }
 
-export function JobUploadModal({ open, onClose, defaultProjectId }: Props) {
-  const [projectId, setProjectId] = useState(
-    defaultProjectId ?? mockProjects[0]?.id ?? "",
-  );
+export function JobUploadModal({ open, onClose, defaultProjectId, onJobCreated }: Props) {
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [projectId, setProjectId] = useState(defaultProjectId ?? "");
   const [file, setFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  const addJob = useJobStore((s) => s.addJob);
+
+  useEffect(() => {
+    if (open) {
+      projectService
+        .getProjects()
+        .then((ps) => {
+          setProjects(ps);
+          if (!projectId && ps.length > 0) {
+            setProjectId(defaultProjectId ?? ps[0].id);
+          }
+        })
+        .catch(console.error);
+    }
+  }, [open]);
 
   if (!open) return null;
 
@@ -30,28 +42,23 @@ export function JobUploadModal({ open, onClose, defaultProjectId }: Props) {
   };
 
   const handleSubmit = async () => {
-    if (!file || !projectId) return;
+    if (!file || !projectId) {
+      setErr("Please select a project and a GeoTIFF file.");
+      return;
+    }
     setSubmitting(true);
     setErr(null);
     try {
       const job = await jobService.createJob(projectId, file);
-      addJob(job);
+      onJobCreated?.(job);
       reset();
       onClose();
-    } catch {
-      // Backend not wired — push optimistic local job so UX still works
-      const project = mockProjects.find((p) => p.id === projectId);
-      const optimistic: Job = {
-        id: `j_${Math.random().toString(36).slice(2, 8)}`,
-        projectId,
-        projectName: project?.name,
-        status: "pending",
-        createdAt: new Date().toISOString(),
-        fileName: file.name,
-      };
-      addJob(optimistic);
-      reset();
-      onClose();
+    } catch (e: unknown) {
+      const msg =
+        (e as { response?: { data?: { detail?: string } } })?.response?.data
+          ?.detail ?? "Upload failed. Please try again.";
+      setErr(typeof msg === "string" ? msg : JSON.stringify(msg));
+      setSubmitting(false);
     }
   };
 
@@ -89,7 +96,10 @@ export function JobUploadModal({ open, onClose, defaultProjectId }: Props) {
               onChange={(e) => setProjectId(e.target.value)}
               className="w-full rounded-md border border-border bg-input px-3 py-2 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary"
             >
-              {mockProjects.map((p) => (
+              {projects.length === 0 && (
+                <option value="">Loading projects…</option>
+              )}
+              {projects.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.name}
                 </option>

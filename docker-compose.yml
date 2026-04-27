@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   postgres:
     image: postgis/postgis:16-3.4
@@ -12,7 +10,7 @@ services:
     volumes:
       - pg_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U bluecarbon"]
+      test: [ "CMD-SHELL", "pg_isready -U bluecarbon" ]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -25,7 +23,7 @@ services:
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 5s
       timeout: 3s
       retries: 5
@@ -45,7 +43,7 @@ services:
         condition: service_healthy
     volumes:
       - ./backend:/app
-      - /tmp:/tmp
+      - uploads_data:/app/uploads
 
   worker:
     build:
@@ -60,8 +58,9 @@ services:
         condition: service_healthy
     volumes:
       - ./backend:/app
-      - /tmp:/tmp
+      - uploads_data:/app/uploads
 
 volumes:
   pg_data:
   redis_data:
+  uploads_data:

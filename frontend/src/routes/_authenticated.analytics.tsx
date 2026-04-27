@@ -1,15 +1,47 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { TrendingUp, BarChart3, ShieldCheck } from "lucide-react";
-import { mockTimeSeries, mockAreaByProject } from "@/lib/mockData";
+import api from "@/lib/axios";
+import { mockAreaByProject } from "@/lib/mockData";
 
 export const Route = createFileRoute("/_authenticated/analytics")({
   component: AnalyticsPage,
 });
 
+interface CarbonReading {
+  month: string; // "2024-11"
+  value: number;
+}
+
 function AnalyticsPage() {
-  const maxTs = Math.max(...mockTimeSeries.map((d) => d.value));
+  const [timeSeries, setTimeSeries] = useState<CarbonReading[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api
+      .get<CarbonReading[]>("/api/analytics/carbon-stock")
+      .then((res) => {
+        const data = res.data;
+        if (Array.isArray(data) && data.length > 0) {
+          setTimeSeries(data);
+        }
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
+  const maxTs = timeSeries.length > 0 ? Math.max(...timeSeries.map((d) => d.value)) : 1;
   const maxArea = Math.max(...mockAreaByProject.map((d) => d.area));
   const verifiedRate = 0.78;
+
+  // Format month label: "2024-11" → "Nov"
+  function fmtMonth(m: string) {
+    try {
+      return new Date(`${m}-01`).toLocaleString("default", { month: "short" });
+    } catch {
+      return m;
+    }
+  }
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 p-6">
@@ -28,25 +60,35 @@ function AnalyticsPage() {
               Carbon stock over time
             </h2>
           </div>
-          <div className="flex h-56 items-end gap-3">
-            {mockTimeSeries.map((d) => (
-              <div
-                key={d.month}
-                className="flex flex-1 flex-col items-center gap-2"
-              >
-                <div className="flex w-full flex-1 items-end">
-                  <div
-                    className="w-full rounded-t bg-primary/80"
-                    style={{ height: `${(d.value / maxTs) * 100}%` }}
-                    title={`${d.value.toLocaleString()} tCO₂e`}
-                  />
+          {loading ? (
+            <div className="flex h-56 items-center justify-center">
+              <p className="text-sm text-muted-foreground">Loading…</p>
+            </div>
+          ) : timeSeries.length === 0 ? (
+            <div className="flex h-56 items-center justify-center">
+              <p className="text-sm text-muted-foreground">No data available.</p>
+            </div>
+          ) : (
+            <div className="flex h-56 items-end gap-3">
+              {timeSeries.map((d) => (
+                <div
+                  key={d.month}
+                  className="flex flex-1 flex-col items-center gap-2"
+                >
+                  <div className="flex w-full flex-1 items-end">
+                    <div
+                      className="w-full rounded-t bg-primary/80 transition-all duration-500"
+                      style={{ height: `${(d.value / maxTs) * 100}%` }}
+                      title={`${d.value.toLocaleString()} tCO₂e`}
+                    />
+                  </div>
+                  <span className="text-xs text-muted-foreground">
+                    {fmtMonth(d.month)}
+                  </span>
                 </div>
-                <span className="text-xs text-muted-foreground">
-                  {d.month}
-                </span>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
           <p className="mt-3 text-xs text-muted-foreground">
             Cumulative tCO₂e estimated across all projects (last 6 months).
           </p>

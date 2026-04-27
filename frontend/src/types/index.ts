@@ -25,6 +25,15 @@ export interface ResultFeature {
   properties: ResultProperties;
 }
 
+export interface JobResults {
+  total_area_ha: number;
+  carbon_stock_tco2e: number;
+  mean_ndvi: number;
+  pixel_count: number;
+  resolution_m: number;
+  verified: boolean;
+}
+
 export interface Job {
   id: string;
   projectId: string;
@@ -33,25 +42,28 @@ export interface Job {
   createdAt: string;
   updatedAt?: string;
   fileName?: string;
-  result?: ResultFeature;
+  result?: ResultFeature;       // legacy GeoJSON result
+  results?: JobResults | null;  // new detailed metrics
 }
 
 export interface Project {
   id: string;
   name: string;
-  location: string;
+  location?: string;
   createdAt: string;
-  status: "active" | "archived" | "draft";
+  status: "active" | "archived" | "draft" | string;
   description?: string;
 }
 
 export interface Alert {
   id: string;
   type: "info" | "warning" | "critical";
+  severity?: string;
   title: string;
   message: string;
   createdAt: string;
   read: boolean;
+  status?: string;
   projectId?: string;
 }
 

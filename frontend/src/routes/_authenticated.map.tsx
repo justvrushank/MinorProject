@@ -166,6 +166,9 @@ function MapPage() {
   );
 
   // ── Load all complete jobs when map style loads ───────────────────────────
+  const UUID_REGEX =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
   const loadAllCompleteJobs = useCallback(async () => {
     const map = mapRef.current;
     if (!map) return;
@@ -174,12 +177,33 @@ function MapPage() {
       const allJobs = await jobService.getJobs();
       const complete = allJobs.filter((j) => j.status === "complete");
       setCompletedJobs(complete);
+
       for (const job of complete) {
+        // Bug 1 guard: skip non-UUID IDs (e.g. "j_1038" from seeded mock data)
+        if (!UUID_REGEX.test(job.id)) {
+          console.info(`Skipping job with non-UUID id: ${job.id}`);
+          continue;
+        }
+
+        // Bug 2 guard: skip jobs whose result has no 'geojson' key —
+        // these are old jobs processed before the GeoJSON pipeline was added.
+        // Checking this avoids an unnecessary 404 network request.
+        const hasGeoJSON =
+          job.result != null &&
+          typeof job.result === "object" &&
+          "geojson" in job.result;
+
+        if (!hasGeoJSON) {
+          console.info(`Job ${job.id} skipped — no GeoJSON in result`);
+          continue;
+        }
+
         try {
           const geojson = await jobService.getJobGeoJSON(job.id);
           addJobLayerToMap(job, geojson);
         } catch (err) {
-          console.warn(`Skipping job ${job.id} — GeoJSON unavailable`, err);
+          // Genuine unexpected error (e.g. network failure) — still warn
+          console.warn(`Skipping job ${job.id} — GeoJSON fetch failed`, err);
         }
       }
     } catch (err) {
@@ -187,7 +211,7 @@ function MapPage() {
     } finally {
       setLoadingData(false);
     }
-  }, [setCompletedJobs, addJobLayerToMap]);
+  }, [setCompletedJobs, addJobLayerToMap]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Map initialization ────────────────────────────────────────────────────
   useEffect(() => {

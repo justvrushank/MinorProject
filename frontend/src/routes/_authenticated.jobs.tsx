@@ -1,44 +1,64 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Plus, X, Eye } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Plus, X, Eye, Loader2 } from "lucide-react";
 import { StatusBadge } from "@/components/StatusBadge";
 import { JobUploadModal } from "@/components/JobUploadModal";
 import { jobService } from "@/services/job.service";
-import type { Job, JobStatus } from "@/types";
+import type { Job, JobStatus, TifResult } from "@/types";
 
 export const Route = createFileRoute("/_authenticated/jobs")({
   component: JobsPage,
 });
 
+// ─── Utility ─────────────────────────────────────────────────────────────────
+
+function fmt(n: number | null | undefined, decimals = 2, suffix = ""): string {
+  if (n == null) return "N/A";
+  return `${n.toLocaleString(undefined, { maximumFractionDigits: decimals })}${suffix}`;
+}
+
 // ─── Results Detail Modal ─────────────────────────────────────────────────────
+
 interface ResultsModalProps {
   job: Job | null;
   onClose: () => void;
 }
 
 function ResultsModal({ job, onClose }: ResultsModalProps) {
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<TifResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!job) {
+      setResult(null);
+      setError(null);
+      return;
+    }
+
+    // Try to use inline result first (already on the job object)
+    const inline = job.result as TifResult | null;
+    if (inline && "valid_area_ha" in inline) {
+      setResult(inline);
+      return;
+    }
+
+    // Otherwise fetch from dedicated endpoint
+    setLoading(true);
+    setError(null);
+    jobService
+      .getJobResults(job.id)
+      .then(setResult)
+      .catch((e: unknown) => {
+        const msg =
+          (e as { response?: { data?: { detail?: string } } })?.response?.data
+            ?.detail ?? "Failed to load results.";
+        setError(typeof msg === "string" ? msg : JSON.stringify(msg));
+      })
+      .finally(() => setLoading(false));
+  }, [job]);
+
   if (!job) return null;
-
-  // Support both `results` (new) and legacy `result.properties`
-  const r = (job as Job & { results?: Record<string, unknown> }).results as
-    | {
-        total_area_ha?: number;
-        carbon_stock_tco2e?: number;
-        mean_ndvi?: number;
-        pixel_count?: number;
-        resolution_m?: number;
-        verified?: boolean;
-      }
-    | undefined;
-
-  const legacy = job.result?.properties;
-
-  const area = r?.total_area_ha ?? legacy?.area_ha;
-  const carbon = r?.carbon_stock_tco2e ?? legacy?.carbon_stock_tCO2e;
-  const ndvi = r?.mean_ndvi;
-  const pixels = r?.pixel_count;
-  const res = r?.resolution_m;
-  const verified = r?.verified;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -46,92 +66,150 @@ function ResultsModal({ job, onClose }: ResultsModalProps) {
         className="absolute inset-0 bg-background/80 backdrop-blur-sm"
         onClick={onClose}
       />
-      <div className="relative z-10 w-full max-w-md rounded-xl border border-border bg-card shadow-2xl">
-        <div className="flex items-center justify-between border-b border-border px-5 py-4">
+      <div className="relative z-10 w-full max-w-lg rounded-xl border border-border bg-card shadow-2xl overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-border px-5 py-4 bg-primary/5">
           <div>
             <h2 className="text-base font-semibold text-foreground">
-              Job Results
+              Carbon Stock Results
             </h2>
-            <p className="text-xs text-muted-foreground">{job.id}</p>
+            <p className="text-xs font-mono text-muted-foreground mt-0.5">
+              {job.id}
+            </p>
           </div>
           <button
             onClick={onClose}
-            className="rounded-md p-1 text-muted-foreground hover:bg-surface-hover hover:text-foreground"
+            className="rounded-md p-1.5 text-muted-foreground hover:bg-surface-hover hover:text-foreground transition"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
-        <div className="p-5 space-y-4">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Project</span>
-            <span className="text-sm font-medium text-foreground">
-              {job.projectName ?? job.projectId}
-            </span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Status</span>
-            <StatusBadge status={job.status} />
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">File</span>
-            <span className="text-xs font-mono text-muted-foreground">
-              {job.fileName ?? "—"}
-            </span>
-          </div>
-
-          <div className="border-t border-border pt-4 space-y-3">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Analysis Metrics
-            </h3>
-
-            {[
-              {
-                label: "Total Area",
-                value: area != null ? `${area.toLocaleString()} ha` : "—",
-              },
-              {
-                label: "Carbon Stock",
-                value:
-                  carbon != null
-                    ? `${Math.round(carbon).toLocaleString()} tCO₂e`
-                    : "—",
-              },
-              {
-                label: "Mean NDVI",
-                value: ndvi != null ? ndvi.toFixed(2) : "—",
-              },
-              {
-                label: "Pixel Count",
-                value:
-                  pixels != null ? pixels.toLocaleString() : "—",
-              },
-              {
-                label: "Resolution",
-                value: res != null ? `${res} m/px` : "—",
-              },
-            ].map(({ label, value }) => (
-              <div key={label} className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">{label}</span>
-                <span className="text-sm font-medium tabular-nums text-foreground">
-                  {value}
-                </span>
-              </div>
-            ))}
-
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Verified</span>
-              <span
-                className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
-                  verified
-                    ? "bg-status-complete/15 text-status-complete"
-                    : "bg-muted text-muted-foreground"
-                }`}
-              >
-                {verified ? "Yes" : "No"}
-              </span>
+        <div className="p-5 space-y-5 max-h-[80vh] overflow-y-auto">
+          {/* Loading state */}
+          {loading && (
+            <div className="flex items-center justify-center py-8 gap-2 text-muted-foreground">
+              <Loader2 className="h-5 w-5 animate-spin" />
+              <span className="text-sm">Loading results…</span>
             </div>
-          </div>
+          )}
+
+          {/* Error state */}
+          {error && (
+            <p className="text-sm text-destructive bg-destructive/10 rounded-md px-3 py-2">
+              {error}
+            </p>
+          )}
+
+          {result && (
+            <>
+              {/* ── Hero metrics ─────────────────────────────────────────── */}
+              <div className="grid grid-cols-2 gap-3">
+                {/* Total Carbon Stock */}
+                <div className="col-span-2 rounded-lg border border-primary/30 bg-primary/8 px-4 py-3 text-center">
+                  <p className="text-xs font-medium text-primary/70 uppercase tracking-wider mb-1">
+                    Total Carbon Stock
+                  </p>
+                  <p className="text-3xl font-bold tabular-nums text-primary">
+                    {Math.round(result.total_carbon_tco2e).toLocaleString()}
+                  </p>
+                  <p className="text-xs text-primary/70 mt-0.5">tCO₂e</p>
+                </div>
+
+                {/* Area Analyzed */}
+                <div className="rounded-lg border border-border bg-muted/30 px-3 py-2.5 text-center">
+                  <p className="text-xs text-muted-foreground mb-1">Area Analyzed</p>
+                  <p className="text-xl font-semibold tabular-nums text-foreground">
+                    {fmt(result.valid_area_ha, 1)}
+                  </p>
+                  <p className="text-xs text-muted-foreground">ha</p>
+                </div>
+
+                {/* Avg Carbon / ha */}
+                <div className="rounded-lg border border-border bg-muted/30 px-3 py-2.5 text-center">
+                  <p className="text-xs text-muted-foreground mb-1">
+                    Avg Carbon / ha
+                  </p>
+                  <p className="text-xl font-semibold tabular-nums text-foreground">
+                    {fmt(result.avg_carbon_per_ha, 1)}
+                  </p>
+                  <p className="text-xs text-muted-foreground">tCO₂e / ha</p>
+                </div>
+              </div>
+
+              {/* ── Remote sensing ───────────────────────────────────────── */}
+              <div className="space-y-2">
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Remote Sensing
+                </h3>
+                {[
+                  {
+                    label: "NDVI Mean",
+                    value: result.ndvi_mean != null
+                      ? result.ndvi_mean.toFixed(4)
+                      : "N/A",
+                  },
+                  { label: "Band 1 Mean (norm.)", value: fmt(result.band_mean, 4) },
+                  { label: "Band 1 Min / Max", value: `${fmt(result.band_min, 4)} / ${fmt(result.band_max, 4)}` },
+                ].map(({ label, value }) => (
+                  <div key={label} className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">{label}</span>
+                    <span className="text-sm font-medium tabular-nums text-foreground">
+                      {value}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {/* ── Image metadata ───────────────────────────────────────── */}
+              <div className="space-y-2">
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Image Metadata
+                </h3>
+                {[
+                  { label: "CRS", value: result.crs },
+                  {
+                    label: "Dimensions",
+                    value: `${result.width_px.toLocaleString()} × ${result.height_px.toLocaleString()} px`,
+                  },
+                  {
+                    label: "Band Count",
+                    value: String(result.band_count),
+                  },
+                  {
+                    label: "Valid Pixels",
+                    value: `${result.valid_pixels.toLocaleString()} / ${result.total_pixels.toLocaleString()}`,
+                  },
+                ].map(({ label, value }) => (
+                  <div key={label} className="flex items-start justify-between gap-3">
+                    <span className="text-sm text-muted-foreground shrink-0">{label}</span>
+                    <span className="text-sm font-medium text-foreground text-right break-all">
+                      {value}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {/* ── Bounding box ─────────────────────────────────────────── */}
+              {result.bbox && (
+                <div className="space-y-2">
+                  <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Bounding Box (WGS-84)
+                  </h3>
+                  <div className="rounded-md border border-border bg-muted/20 px-3 py-2.5 grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
+                    {(["west", "south", "east", "north"] as const).map((k) => (
+                      <div key={k} className="flex items-center justify-between">
+                        <span className="text-muted-foreground capitalize">{k}</span>
+                        <span className="font-mono tabular-nums text-foreground">
+                          {result.bbox[k].toFixed(5)}°
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
         </div>
       </div>
     </div>
@@ -144,14 +222,29 @@ function JobsPage() {
   const [filter, setFilter] = useState<JobStatus | "all">("all");
   const [jobs, setJobs] = useState<Job[]>([]);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Cleanup toast timer on unmount
+  useEffect(() => () => { if (toastTimerRef.current) clearTimeout(toastTimerRef.current); }, []);
 
   // Initial fetch
   useEffect(() => {
     jobService.getJobs().then(setJobs).catch(console.error);
   }, []);
 
-  // Auto-refresh polling when any job is pending/running
+  function handleJobComplete(job: Job) {
+    // Refresh job list
+    jobService.getJobs().then(setJobs).catch(console.error);
+    // Show toast
+    const msg = `✓ Job complete${job.fileName ? ` — ${job.fileName}` : ""}`;
+    setToast(msg);
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = setTimeout(() => setToast(null), 4000);
+  }
+
+  // 5-second polling while any job is pending / running
   useEffect(() => {
     const hasActive = jobs.some(
       (j) => j.status === "pending" || j.status === "running",
@@ -194,6 +287,8 @@ function JobsPage() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 p-6">
+      {/* Toast notification */}
+      {toast && <div className="toast toast-success">{toast}</div>}
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold text-foreground">Jobs</h1>
@@ -211,6 +306,7 @@ function JobsPage() {
       </div>
 
       <div className="rounded-lg border border-border bg-card">
+        {/* Filter tabs */}
         <div className="flex items-center gap-1 border-b border-border p-2">
           {filters.map((f) => (
             <button
@@ -267,7 +363,7 @@ function JobsPage() {
                     {j.status === "complete" && (
                       <button
                         onClick={() => setSelectedJob(j)}
-                        className="inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1 text-xs text-primary hover:bg-primary/10"
+                        className="inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1 text-xs text-primary hover:bg-primary/10 transition"
                       >
                         <Eye className="h-3.5 w-3.5" />
                         View Results
@@ -294,6 +390,8 @@ function JobsPage() {
       <JobUploadModal
         open={open}
         onClose={() => setOpen(false)}
+        onJobCreated={(job) => setJobs((prev) => [job, ...prev])}
+        onJobComplete={handleJobComplete}
       />
 
       <ResultsModal

@@ -164,4 +164,27 @@
     font-size: 0.875rem;
     border: 1px dashed var(--color-border);
   }
+
+  .toast {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    padding: 0.75rem 1.25rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    z-index: 9999;
+    animation: slideUp 0.25s ease;
+  }
+
+  .toast-success {
+    background: #166534;
+    color: #dcfce7;
+    border: 1px solid #15803d;
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(1rem); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+  }
 }

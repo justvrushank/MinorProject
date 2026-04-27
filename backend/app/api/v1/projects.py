@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, desc
 from app.core.database import get_db
 from app.api.deps import get_current_user
 from app.models.project import Project
@@ -11,6 +11,8 @@ from app.schemas.project import ProjectCreate, ProjectUpdate, ProjectOut
 import uuid
 
 router = APIRouter()
+
+_COMPLETE = "complete"
 
 
 def project_to_out(p: Project) -> dict:
@@ -35,6 +37,20 @@ def result_to_feature(r: Result) -> dict:
             "model_version": r.model_version,
             "computed_at": r.computed_at.isoformat() if r.computed_at else None,
         },
+    }
+
+
+def _job_to_dict(job: Job, project_name: str | None = None) -> dict:
+    return {
+        "id":          job.id,
+        "projectId":   job.project_id,
+        "projectName": project_name,
+        "fileName":    job.file_name,
+        "status":      job.status,
+        "result":      job.result,
+        "results":     job.result,
+        "createdAt":   job.created_at.isoformat() if job.created_at else None,
+        "updatedAt":   job.updated_at.isoformat() if job.updated_at else None,
     }
 
 
@@ -63,6 +79,38 @@ async def create_project(
     await db.commit()
     await db.refresh(project)
     return project_to_out(project)
+
+
+@router.get("/{id}/jobs/latest-complete")
+async def get_latest_complete_job(
+    id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Return the most recently created COMPLETE job for a given project.
+    • 404 if no complete job exists for this project.
+    """
+    # First check project exists
+    proj_row = await db.execute(select(Project).where(Project.id == id))
+    project = proj_row.scalar_one_or_none()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found.")
+
+    q = (
+        select(Job)
+        .where(Job.project_id == id, Job.status == _COMPLETE)
+        .order_by(desc(Job.created_at))
+        .limit(1)
+    )
+    row = await db.execute(q)
+    job = row.scalar_one_or_none()
+    if not job:
+        raise HTTPException(
+            status_code=404,
+            detail="No complete job found for this project.",
+        )
+    return _job_to_dict(job, project.name)
 
 
 @router.get("/{id}", response_model=ProjectOut)

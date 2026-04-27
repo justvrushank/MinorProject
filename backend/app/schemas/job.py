@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, Any
 
 
 class JobOut(BaseModel):
@@ -8,7 +8,8 @@ class JobOut(BaseModel):
     projectName: Optional[str] = None
     fileName: Optional[str] = None
     status: str
+    result: Optional[Any] = None      # full TifResult dict (JSON column)
+    results: Optional[Any] = None     # alias — same value, keeps frontend compat
     createdAt: str
     updatedAt: Optional[str] = None
-    result: Optional[dict] = None
     model_config = {"from_attributes": True}

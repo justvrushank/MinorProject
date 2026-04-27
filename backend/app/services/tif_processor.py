@@ -202,15 +202,6 @@ def tif_to_geojson(file_path: str, grid_size: int = 50) -> dict:
     wgs84 = CRS.from_epsg(4326)
 
     with rasterio.open(file_path) as src:
-        nodata = src.nodata
-
-        # Resample band 1 to grid_size × grid_size
-        resampled = src.read(
-            1,
-            out_shape=(grid_size, grid_size),
-            resampling=Resampling.average,
-        ).astype(np.float64)
-
         # Get WGS-84 bounds
         if src.crs is None or src.crs == wgs84:
             b = src.bounds
@@ -218,65 +209,69 @@ def tif_to_geojson(file_path: str, grid_size: int = 50) -> dict:
         else:
             west, south, east, north = transform_bounds(src.crs, wgs84, *src.bounds)
 
-    # Mask nodata
-    if nodata is not None:
-        resampled = np.where(resampled == nodata, np.nan, resampled)
+        # Dimensions in pixels for Window()
+        cell_w = src.width / grid_size
+        cell_h = src.height / grid_size
+        
+        # Dimensions in WGS-84 for geo bounding boxes
+        geo_cell_w = (east - west) / grid_size
+        geo_cell_h = (north - south) / grid_size
 
-    # Normalise 0–1
-    valid_mask = np.isfinite(resampled)
-    if not np.any(valid_mask):
-        return {"type": "FeatureCollection", "features": []}
+        features = []
+        for row in range(grid_size):
+            for col in range(grid_size):
+                col_off = col * cell_w
+                row_off = row * cell_h
 
-    valid_vals = resampled[valid_mask]
-    v_min = float(np.nanmin(valid_vals))
-    v_max = float(np.nanmax(valid_vals))
+                # Read this grid cell
+                window = rasterio.windows.Window(col_off, row_off, cell_w, cell_h)
+                cell_data = src.read(1, window=window, masked=True)
 
-    cell_w = (east - west) / grid_size
-    cell_h = (north - south) / grid_size
+                total_pixels = cell_data.size
+                if total_pixels == 0:
+                    continue
 
-    features = []
-    for row in range(grid_size):
-        for col in range(grid_size):
-            raw = resampled[row, col]
-            if not np.isfinite(raw):
-                continue  # skip nodata cells
+                # Mangrove density = fraction of cell covered by valid pixels
+                if hasattr(cell_data, 'mask') and cell_data.mask is not np.ma.nomask:
+                    valid_count = int((~cell_data.mask).sum())
+                else:
+                    valid_count = total_pixels
 
-            # Normalise
-            if v_max > v_min:
-                norm = (raw - v_min) / (v_max - v_min)
-            else:
-                norm = 0.0
+                norm = valid_count / total_pixels      # range: 0.0 – 1.0
+                norm = max(0.0, min(1.0, norm))
 
-            # IPCC Tier 1: carbon = norm * 160 * 0.47 * 3.67  tCO₂e/ha
-            carbon = norm * _BIOMASS_TC_PER_HA * _CARBON_FRACTION * _CO2_FACTOR
+                if norm == 0.0:
+                    continue    # skip cells with zero mangrove coverage
 
-            # Cell bounding box (WGS-84)
-            x0 = west + col * cell_w
-            x1 = x0 + cell_w
-            # Rows go top-to-bottom → row 0 is the northernmost strip
-            y1 = north - row * cell_h
-            y0 = y1 - cell_h
+                carbon = norm * _BIOMASS_TC_PER_HA * _CARBON_FRACTION * _CO2_FACTOR
 
-            coordinates = [[
-                [x0, y0],
-                [x1, y0],
-                [x1, y1],
-                [x0, y1],
-                [x0, y0],  # close ring
-            ]]
+                # Cell bounding box (WGS-84)
+                x0 = west + col * geo_cell_w
+                x1 = x0 + geo_cell_w
+                # Rows go top-to-bottom → row 0 is the northernmost strip
+                y1 = north - row * geo_cell_h
+                y0 = y1 - geo_cell_h
 
-            features.append({
-                "type": "Feature",
-                "geometry": {
-                    "type": "Polygon",
-                    "coordinates": coordinates,
-                },
-                "properties": {
-                    "carbon_tco2e": round(carbon, 2),
-                    "raw_value":    round(float(norm), 4),
-                    "row":          row,
-                    "col":          col,
-                },
-            })
+                coordinates = [[
+                    [x0, y0],
+                    [x1, y0],
+                    [x1, y1],
+                    [x0, y1],
+                    [x0, y0],  # close ring
+                ]]
 
-    return {"type": "FeatureCollection", "features": features}
+                features.append({
+                    "type": "Feature",
+                    "geometry": {
+                        "type": "Polygon",
+                        "coordinates": coordinates,
+                    },
+                    "properties": {
+                        "carbon_tco2e": round(carbon, 2),
+                        "raw_value":    round(norm, 4),
+                        "row":          row,
+                        "col":          col,
+                    },
+                })
+
+        return {"type": "FeatureCollection", "features": features}
